@@ -171,7 +171,7 @@ kbd {
 /* ── Utilities ─────────────────────────────────────────────────────────── */
 
 .container {
-  width: min(1160px, calc(100% - 48px));
+  width: min(1160px, calc(100% - clamp(32px, 4vw, 48px)));
   margin-inline: auto;
 }
 
@@ -235,11 +235,14 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 9px;
+  max-width: 100%;
   font-family: var(--font-body);
   font-size: 0.72rem;
   font-weight: 500;
+  line-height: 1.5;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  text-wrap: balance;
   color: var(--text-tertiary);
 }
 
