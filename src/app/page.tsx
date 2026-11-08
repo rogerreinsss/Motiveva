@@ -155,7 +155,12 @@ export default async function HomePage() {
           <div className="container hero-inner">
             <p className="eyebrow">
               <span className="eyebrow-dot" aria-hidden="true" />
-              Cuenta gratuita · Sync en la nube · Sin ruido
+              <span className="eyebrow-desktop">
+                Cuenta gratuita · Sync en la nube · Sin ruido
+              </span>
+              <span className="eyebrow-mobile">
+                Gratis · Sync privado · Sin ruido
+              </span>
             </p>
 
             <h1 className="hero-title" id="hero-title">
@@ -269,7 +274,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="section" aria-label="Manifiesto">
+        <section className="section manifesto-section" aria-label="Manifiesto">
           <div className="container">
             <figure className="manifesto">
               <Icon name="sparkle" size={20} />

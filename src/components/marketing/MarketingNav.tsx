@@ -16,11 +16,35 @@ export function MarketingNav() {
   useEffect(() => {
     if (!open) return;
 
+    // The panel is mobile-only: close it if the viewport reaches desktop.
+    const desktopQuery = window.matchMedia("(min-width: 901px)");
+    const onDesktopChange = (event: MediaQueryListEvent) => {
+      if (event.matches) setOpen(false);
+    };
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
+
+    // Keep the page behind the panel from scrolling while it is open.
+    const { body, documentElement } = document;
+    const scrollbarWidth = window.innerWidth - documentElement.clientWidth;
+    const previousOverflow = body.style.overflow;
+    const previousPaddingRight = body.style.paddingRight;
+
+    body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    desktopQuery.addEventListener("change", onDesktopChange);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      desktopQuery.removeEventListener("change", onDesktopChange);
+      body.style.overflow = previousOverflow;
+      body.style.paddingRight = previousPaddingRight;
+    };
   }, [open]);
 
   return (
