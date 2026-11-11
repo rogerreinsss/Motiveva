@@ -170,9 +170,8 @@ export default async function HomePage() {
             </h1>
 
             <p className="hero-lede">
-              Un seguidor de hábitos con tu cuenta privada: tus rachas y
-              estadísticas te siguen a cualquier dispositivo. Rachas honestas,
-              estadísticas claras y un lugar tranquilo para volver cada día.
+              Rachas honestas, estadísticas claras y un lugar tranquilo para
+              volver. Tus hábitos te siguen a cualquier dispositivo.
             </p>
 
             <div className="hero-cta">
@@ -187,13 +186,19 @@ export default async function HomePage() {
 
             <ul className="hero-proof">
               <li>
-                <Icon name="check" size={13} /> Verificación de email incluida
+                <Icon name="check" size={13} />
+                <span className="proof-desktop">Verificación de email incluida</span>
+                <span className="proof-mobile">Email verificado</span>
               </li>
               <li>
-                <Icon name="shield" size={13} /> Copia privada con RLS
+                <Icon name="shield" size={13} />
+                <span className="proof-desktop">Copia privada con RLS</span>
+                <span className="proof-mobile">Copia privada</span>
               </li>
               <li>
-                <Icon name="sparkle" size={13} /> Gratis para siempre
+                <Icon name="sparkle" size={13} />
+                <span className="proof-desktop">Gratis para siempre</span>
+                <span className="proof-mobile">Gratis siempre</span>
               </li>
             </ul>
           </div>
