@@ -1382,19 +1382,16 @@
     padding: 92px 0 30px;
     border-radius: 0 0 28px 28px;
     background-color: #0d1a13;
-    background-image:
-      radial-gradient(130% 72% at 50% -10%, rgba(126, 163, 133, 0.3), transparent 62%),
-      linear-gradient(180deg, #0e1b14 0%, #0b140f 100%);
+    /* Vertical-only gradient: every row has one uniform colour, so no
+       central band, radial bloom or vertical edge can appear. */
+    background-image: linear-gradient(180deg, #14241b 0%, #0d1a13 46%, #0a140f 100%);
     color: var(--text-primary);
   }
 
-  /* A single continuous field: no aurora bands or blurred rectangles. */
-  .hero-aurora {
-    display: none;
-  }
-
+  /* No decorative layers inside the mobile hero: the field stays uniform. */
+  .hero-aurora,
   .hero-stars {
-    opacity: 0.4;
+    display: none;
   }
 
   .hero .eyebrow {
@@ -1415,8 +1412,22 @@
     color: #f2f7ef;
   }
 
+  /* Solid elegant fallback: if text clipping fails, never paint a box. */
   .hero .gradient-text {
-    background: linear-gradient(100deg, #d3e5cf 0%, #a3c8aa 52%, #dcc4a2 100%);
+    background: none;
+    color: #d5e7d2;
+    -webkit-text-fill-color: currentColor;
+  }
+
+  @supports ((background-clip: text) or (-webkit-background-clip: text)) {
+    .hero .gradient-text {
+      background-color: transparent;
+      background-image: linear-gradient(100deg, #d3e5cf 0%, #a3c8aa 52%, #dcc4a2 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
   }
 
   .hero-lede {

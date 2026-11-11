@@ -207,7 +207,8 @@ kbd {
 }
 
 .gradient-text {
-  background: var(--gradient-brand);
+  /* background-image (not the background shorthand) so the clip is never reset. */
+  background-image: var(--gradient-brand);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
