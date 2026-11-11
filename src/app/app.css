@@ -1258,6 +1258,12 @@
     gap: 12px;
   }
 
+  /* Form rows with inline fields stack so the copy never collapses to 0px. */
+  form.settings-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .settings-inline-fields {
     width: 100%;
   }
