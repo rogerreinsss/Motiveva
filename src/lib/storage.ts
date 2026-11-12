@@ -6,6 +6,7 @@ export const SORT_KEY = "motivevaSort";
 export const LAST_EXPORT_KEY = "motivevaLastExport";
 export const NOTIF_KEY = "motivevaNotif";
 export const REMINDER_KEY = "motivevaReminderTime";
+export const REMINDER_LAST_KEY = "motivevaReminderLastSent";
 export const MOTION_KEY = "motivevaMotion";
 export const THEME_KEY = "motivevaTheme";
 

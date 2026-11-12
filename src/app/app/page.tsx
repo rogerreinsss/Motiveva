@@ -3,6 +3,7 @@ import { HabitApp } from "@/components/app/HabitApp";
 import { HabitProvider } from "@/components/app/HabitProvider";
 import { OnboardingGate } from "@/components/app/Onboarding";
 import { ProfileProvider } from "@/components/app/ProfileProvider";
+import { ReminderProvider } from "@/components/app/ReminderProvider";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { ToastProvider } from "@/components/app/ToastProvider";
 import { APP_PATH } from "@/lib/site";
@@ -23,7 +24,9 @@ export default function AppPage() {
         <RequireAuth>
           <ProfileProvider>
             <OnboardingGate>
-              <HabitApp />
+              <ReminderProvider>
+                <HabitApp />
+              </ReminderProvider>
             </OnboardingGate>
           </ProfileProvider>
         </RequireAuth>

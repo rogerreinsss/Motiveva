@@ -7,9 +7,10 @@ import { useHabits } from "@/components/app/HabitProvider";
 import { useProfile } from "@/components/app/ProfileProvider";
 import { useToast } from "@/components/app/ToastProvider";
 import { Toggle } from "@/components/app/Common";
+import { useReminder } from "@/components/app/ReminderProvider";
 import { useTheme, type ThemeMode } from "@/components/ThemeProvider";
 import { Icon, type IconName } from "@/components/ui/Icon";
-import { activeHabits, todayProgress } from "@/lib/habits";
+import { activeHabits } from "@/lib/habits";
 import { formatDateTime, plural, todayKey } from "@/lib/date";
 import { countRecords } from "@/lib/export";
 import {
@@ -20,15 +21,10 @@ import {
 } from "@/lib/profile";
 import {
   MOTION_KEY,
-  NOTIF_KEY,
-  REMINDER_KEY,
   readPreference,
-  removePreference,
   storageSizeKb,
   writePreference,
 } from "@/lib/storage";
-
-const DEFAULT_REMINDER = "09:00";
 
 function ProfileCard() {
   const { profile, save } = useProfile();
@@ -344,25 +340,19 @@ export function SettingsView({ onImport }: SettingsViewProps) {
   const { user, configured, signOut } = useAuth();
   const { toast } = useToast();
   const { mode: themeMode, setMode: setThemeMode } = useTheme();
-  const [notifications, setNotifications] = useState(false);
-  const [reminder, setReminder] = useState(DEFAULT_REMINDER);
+  const {
+    enabled: notifications,
+    reminderTime: reminder,
+    enable: enableReminder,
+    disable: disableReminder,
+    setReminderTime: changeReminder,
+    sendTest,
+  } = useReminder();
   const [reducedMotion, setReducedMotion] = useState(false);
   const [resetArmed, setResetArmed] = useState(false);
 
   useEffect(() => {
-    const savedReminder = readPreference(REMINDER_KEY);
-    if (savedReminder && /^\d{2}:\d{2}$/.test(savedReminder)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- preferences hydrate from localStorage after mount
-      setReminder(savedReminder);
-    }
-
-    const notifStored = readPreference(NOTIF_KEY) === "1";
-    const permissionGranted =
-      typeof window !== "undefined" &&
-      "Notification" in window &&
-      Notification.permission === "granted";
-    setNotifications(notifStored && permissionGranted);
-
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- preference hydrate from localStorage after mount
     setReducedMotion(readPreference(MOTION_KEY) === "1");
   }, []);
 
@@ -376,70 +366,48 @@ export function SettingsView({ onImport }: SettingsViewProps) {
     return () => window.clearTimeout(timer);
   }, [resetArmed]);
 
-  // Local notifications only: no server, no push service.
-  useEffect(() => {
-    if (!notifications) return;
-    if (!("Notification" in window) || Notification.permission !== "granted") {
-      return;
-    }
-
-    let timer = 0;
-
-    const schedule = () => {
-      const [hours, minutes] = reminder.split(":").map(Number);
-      const next = new Date();
-      next.setHours(hours ?? 9, minutes ?? 0, 0, 0);
-      if (next.getTime() <= Date.now()) {
-        next.setDate(next.getDate() + 1);
-      }
-
-      timer = window.setTimeout(() => {
-        const progress = todayProgress(data);
-        new Notification("Motiveva · Tu mejor versión", {
-          body: `${progress.completed}/${progress.scheduled} hábitos completados hoy.`,
-          icon: "/icon.svg",
-          tag: "motiveva-daily",
-        });
-        schedule();
-      }, Math.max(1000, next.getTime() - Date.now()));
-    };
-
-    schedule();
-    return () => window.clearTimeout(timer);
-  }, [notifications, reminder, data]);
-
   async function handleNotificationToggle(next: boolean) {
     if (!next) {
-      setNotifications(false);
-      removePreference(NOTIF_KEY);
+      disableReminder();
       toast("Recordatorios desactivados", "info");
       return;
     }
 
-    if (!("Notification" in window)) {
+    const result = await enableReminder();
+    if (result === "enabled") {
+      toast("Recordatorio diario activado", "success");
+    } else if (result === "denied") {
+      toast("Permiso de notificaciones denegado", "warning");
+    } else if (result === "unsupported") {
       toast("Este navegador no admite notificaciones", "error");
-      return;
-    }
-
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        toast("Permiso de notificaciones denegado", "warning");
-        return;
-      }
-    } catch {
+    } else {
       toast("No se pudo activar el recordatorio", "error");
-      return;
     }
-
-    writePreference(NOTIF_KEY, "1");
-    setNotifications(true);
-    toast("Recordatorio diario activado", "success");
   }
 
-  function changeReminder(value: string) {
-    setReminder(value);
-    writePreference(REMINDER_KEY, value);
+  async function handleTestNotification() {
+    const result = await sendTest();
+
+    if (result === "sent") {
+      toast("Notificación de prueba enviada", "success");
+    } else if (result === "unsupported") {
+      toast("Este navegador no admite notificaciones", "error");
+    } else if (result === "denied") {
+      toast(
+        "El permiso de notificaciones está bloqueado en el navegador",
+        "warning",
+      );
+    } else if (result === "default") {
+      toast(
+        "Activa el recordatorio para conceder permiso de notificaciones",
+        "warning",
+      );
+    } else {
+      toast(
+        "No se pudo enviar. Revisa el permiso de notificaciones del navegador.",
+        "error",
+      );
+    }
   }
 
   function toggleMotion(next: boolean) {
@@ -541,7 +509,8 @@ export function SettingsView({ onImport }: SettingsViewProps) {
           <div className="settings-copy">
             <span className="s-label">Recordatorio diario</span>
             <span className="s-sub">
-              Notificación local del navegador. Nada se envía a un servidor.
+              Notificación local del navegador. Se envía con Motiveva abierta,
+              aunque esté en segundo plano. Nada se envía a un servidor.
             </span>
           </div>
           <Toggle
@@ -568,6 +537,23 @@ export function SettingsView({ onImport }: SettingsViewProps) {
             onChange={(event) => changeReminder(event.target.value)}
             aria-label="Hora del recordatorio"
           />
+        </div>
+
+        <div className="settings-row">
+          <div className="settings-copy">
+            <span className="s-label">Comprobar notificación</span>
+            <span className="s-sub">
+              Envía una notificación ahora para verificar el permiso. Si no
+              aparece, revisa los avisos del sistema.
+            </span>
+          </div>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={handleTestNotification}
+          >
+            Enviar prueba
+          </button>
         </div>
       </section>
 
